@@ -1,0 +1,68 @@
+{
+  "auth": {
+    "authentication": "Authentication",
+    "input": {
+      "username": "Username",
+      "password": "Password",
+      "submit": "Login"
+    },
+    "error": {
+      "username-missing": "Please provide a username.",
+      "password-missing": "Please provide a password.",
+      "wrong-credentials": "The provided username or password is incorrect. Please double-check your credentials and try again."
+    }
+  },
+  "main-page": {
+    "filter": {
+      "search": "Search",
+      "processing-state": "Processing state",
+      "processing-states": {
+        "all": "All",
+        "open": "Open",
+        "accepted": "Accepted",
+        "rejected": "Rejected"
+      }
+    },
+    "language": {
+      "de": "German",
+      "en": "English"
+    },
+    "button": {
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "reject": {
+      "reason": "Reason of rejection",
+      "info-text": "Do you really want to reject the registration of {{focusedName}}?"
+    },
+    "accept": {
+      "info-text": "Do your really want to reject the registration of {{focusedName}}?"
+    },
+    "table": {
+      "previous-insurer": "Previous insurer",
+      "new-insurance": "New insurance",
+      "franchise": "Franchise",
+      "accident-coverage": "Accident coverage",
+      "model": "Model",
+      "doctor-zsr": "Doctor-ZSR"
+    },
+    "error": {
+      "reason-missing": "In order to reject a registration, you must provide the reason of the rejection.",
+      "action": "An error occured while performing this action. Please try again later."
+    },
+    "yes": "Yes",
+    "no": "No",
+    "no-results": "No registrations could be found for you. If this is faulty, please contact our Support at +41 xx xxx xx xx. Or try to load data by clicking on the SEARCH-Button",
+    "gender": {
+      "m": "M",
+      "f": "F"
+    }
+  },
+  "header": {
+    "logout": "Logout",
+    "languages": {
+      "en": "EN",
+      "de": "DE"
+    }
+  }
+}

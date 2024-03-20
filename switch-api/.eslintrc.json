@@ -1,0 +1,10 @@
+{
+  "extends": ["@axah/eslint-config/strict"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "no-empty-function": ["error", { "allow": ["constructors"] }],
+    "@typescript-eslint/no-misused-promises": "off"
+  }
+}

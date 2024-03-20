@@ -1,0 +1,33 @@
+.header_container {
+  background-color: #ddebf9;
+  margin: 0;
+  height: 80px;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+
+  > div {
+    margin-right: 8rem;
+    display: flex;
+    flex-direction: row;
+  }
+}
+
+.language_switch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &.item {
+    cursor: pointer;
+    line-height: 1rem;
+    padding: 0.5rem;
+
+    &:hover {
+      font-weight: bold;
+    }
+  }
+}

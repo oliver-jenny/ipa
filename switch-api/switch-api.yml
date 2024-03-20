@@ -1,0 +1,883 @@
+openapi: '3.0.2'
+info:
+  title: AXA Health Switch API
+  version: '0.3'
+  description: |
+    A draft for an API that allows basic insurance providers to pull information from AXA's Switching Service.
+
+    The intent of this API is to replace or at least complement the current way of communication between AXA and
+    basic insurance providers in regards to basic insurance changes.
+
+    Currently, information about registrations and cancellation of AXA customers with
+    basic insurance providers is sent via emails containing registration/cancellation PDF documents and the
+    mandate document to prove AXA's right to act in the name of the customer.
+    These emails are processed manually by the basic insurance providers and hopefully end in a successful cancellation
+    of insurance coverage in the case of cancellation and in a insurance policy in case of a registration.
+    The main issues with the current process are:
+
+    - Unclear and inefficient handling of error cases and handling differs between the different basic insurance providers.
+    - Email does not guarantee delivery
+    - Emails are not encrypted
+    - Feedback for processed changes needs to be handled manually
+    - Manual processing of registration & cancellation for the basic insurance providers
+
+    The API tries to address the first four issues and at the same time provide the opportunity to automate processing on the basic
+    insurance providers side.
+
+  contact:
+    email: devops.axa.health@axa.ch
+    name: AXA Health
+
+servers:
+  - url: https://axa.ch/health/api/switch/v1
+
+# Domain ----------------------------------------------------------------------------------------------
+
+components:
+  schemas:
+    # Actual Domain
+    FamilyRegistration:
+      description: |
+        A set of customers belonging to the same family that either cancel or register for insurance coverage with
+        a basic insurance provider. A family always contains at least one family member.
+      type: object
+      properties:
+        partner:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartnerRegistration'
+        address:
+          $ref: '#/components/schemas/Address'
+        contactPerson:
+          $ref: '#/components/schemas/ContactPerson'
+        paymentInfo:
+          $ref: '#/components/schemas/PaymentInformation'
+      required:
+        - partner
+        - address
+        - contactPerson
+        - paymentInfo
+
+    PartnerRegistration:
+      description: |
+        The partner registration domain object provides all information required to register basic insurance coverage.
+        Next to the customer identifying information, it contains information about the product selected, previous insurer
+        information as well as references to documents belonging to that customer.
+      type: object
+      properties:
+        partnerId:
+          type: string
+          description: 'The ID of the partner, guaranteed to be unique within the family'
+          example: '123456'
+        firstName:
+          type: string
+          example: 'Max'
+        lastName:
+          type: string
+          example: 'Mustermann'
+        birthDate:
+          type: string
+          format: date
+          example: '1987-12-06'
+        gender:
+          $ref: '#/components/schemas/Gender'
+        language:
+          $ref: '#/components/schemas/Language'
+        nationality:
+          description: 2 character ISO country codes
+          example: 'CH'
+          externalDocs:
+            url: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+          type: string
+        residencePermit:
+          $ref: '#/components/schemas/ResidencePermit'
+        insuranceConfiguration:
+          $ref: '#/components/schemas/InsuranceConfiguration'
+        previousInsurer:
+          $ref: '#/components/schemas/Insurer'
+        contractBeginDate:
+          type: string
+          format: date
+          example: '2023-01-01'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+      required:
+        - partnerId
+        - firstName
+        - lastName
+        - birthDate
+        - gender
+        - language
+        - nationality
+        - residencePermit
+        - insuranceConfiguration
+        - previousInsurer
+        - contractBeginDate
+        - documents
+
+    PartnerCancellation:
+      description: |
+        The partner cancellation domain object provides personal data identifying the partner.
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: 'Max'
+        lastName:
+          type: string
+          example: 'Mustermann'
+        birthDate:
+          type: string
+          format: date
+          example: '1987-12-06'
+        gender:
+          $ref: '#/components/schemas/Gender'
+      required:
+        - firstName
+        - lastName
+        - birthDate
+        - gender
+
+    Address:
+      description: The address details of a customer.
+      type: object
+      properties:
+        street:
+          type: string
+          example: 'General-Guisan-Strasse'
+        streetNo:
+          type: string
+          example: '40'
+        zip:
+          type: string
+          example: '8400'
+        city:
+          type: string
+          example: 'Winterthur'
+        bfsNo:
+          type: string
+          example: '230'
+        canton:
+          type: string
+          example: 'ZH'
+      required:
+        - street
+        - zip
+        - city
+        - bfsNo
+        - canton
+
+    ContactPerson:
+      description: Provides information on how to contact a family. The contactPerson is always an adult.
+      type: object
+      properties:
+        partnerId:
+          description: |
+            The id will match the `partnerId` in the family, if the contact person is part of the
+            application / cancellation
+          type: string
+          example: '123456'
+        firstName:
+          type: string
+          example: 'Max'
+        lastName:
+          type: string
+          example: 'Mustermann'
+        gender:
+          $ref: '#/components/schemas/Gender'
+        language:
+          $ref: '#/components/schemas/Language'
+        email:
+          type: string
+          example: 'mustermann@example.com'
+        mobile:
+          type: string
+          example: '+41798765432'
+        phone:
+          type: string
+          example: '+41521234567'
+      required:
+        - partnerId
+        - firstName
+        - lastName
+        - gender
+        - language
+        - email
+        - mobile
+
+    PaymentInterval:
+      description: The desired interval for premium payments
+      type: string
+      enum:
+        - monthly
+        - bimonthly
+        - quarterly
+        - biannually
+        - yearly
+
+    PaymentType:
+      description: The type of payment (or payment method) for premiums
+      type: string
+      enum:
+        - eBill
+        - qrBill
+        - lsv
+        - debitDirect
+
+    PaymentInformation:
+      description: Premium Payment related information as well as reimbursement information.
+      type: object
+      properties:
+        interval:
+          $ref: '#/components/schemas/PaymentInterval'
+        type:
+          $ref: '#/components/schemas/PaymentType'
+        iban:
+          type: string
+          example: 'CH9300762011623852957'
+      required:
+        - interval
+        - type
+
+    Document:
+      description: The identification of a customer document with its type and id.
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'deeb25a6-4366-45da-9915-a60690cb9093'
+        type:
+          type: string
+          enum:
+            - mandate
+            - registration
+            - cancellation
+      required:
+        - id
+        - type
+
+    Insurer:
+      description: Represents a basic insurance provider in Switzerland
+      type: object
+      properties:
+        fophId:
+          description: |
+            The FOPH ID (BAG-Nr.) of the insurer, e.g. `376` for KPT. `null`, if there is no (previous) insurer
+          type: number
+          nullable: true
+          example: 376
+          externalDocs:
+            url: https://www.bag.admin.ch/bag/de/home/versicherungen/krankenversicherung/krankenversicherung-versicherer-aufsicht/verzeichnisse-krankenundrueckversicherer.html
+        name:
+          type: string
+          example: 'KPT'
+      required:
+        - fophId
+        - name
+
+    InsuranceConfiguration:
+      description: |
+        The customer selected configuration of insurance coverage. Describes the chosen product.
+      type: object
+      properties:
+        insurer:
+          $ref: '#/components/schemas/Insurer'
+        deductible:
+          $ref: '#/components/schemas/InsuranceDeductible'
+        accidentCoverage:
+          type: boolean
+        rateId:
+          description: The rate as found in the column "Tarif" in the FOPH premium data e.g. "KPTwinwin"
+          type: string
+          example: 'KPTwinwin'
+        rateName:
+          description: The rate as found in the column "Tarifbezeichnung" in the FOPH premium data e.g. "KPTwin.win"
+          type: string
+          example: 'KPTwin.win'
+        familyDoctor:
+          description: Name and address of the family doctor
+          type: string
+          example: 'Dorothée Luchsinger, Hegifeldstrasse 28a, 8404 Winterthur'
+        familyDoctorZsrNo:
+          type: string
+          example: 'G358301'
+      required:
+        - insurer
+        - deductible
+        - accidentCoverage
+        - rateId
+        - rateName
+
+    AcceptRegistrationRequest:
+      type: object
+      properties:
+        reference:
+          description: A reference to the registration in the client's system
+          type: string
+
+    AcceptCancellationRequest:
+      type: object
+      properties:
+        reference:
+          description: A reference to the cancellation in the client's system
+          type: string
+
+    RejectRegistrationRequest:
+      type: object
+      properties:
+        reason:
+          description: The reason why the registration could not be processed
+          type: string
+        reference:
+          description: A reference to the registration in the client's system
+          type: string
+        errorDetails:
+          description: Additional (technical) information about the rejection
+          anyOf:
+            - type: string
+            - type: object
+            - type: array
+              items: {}
+      required:
+        - reason
+
+    RejectCancellationRequest:
+      type: object
+      properties:
+        reason:
+          description: The reason why the cancellation could not be processed
+          type: string
+        reference:
+          description: A reference to the registration in the client's system
+          type: string
+        errorDetails:
+          description: Additional (technical) information about the rejection
+          anyOf:
+            - type: string
+            - type: object
+            - type: array
+              items: {}
+      required:
+        - reason
+
+      # Enums:
+      # object with state as enum
+    ProcessingState:
+      description: |
+        The processing state of a switch at the client.
+        - Open, if it has not yet been consumed by the client yet (or if a rejected switch has been updated)
+        - Accepted, if a client has successfully processed the switch
+        - Rejected, if there is something preventing to process the switch.
+      type: string
+      enum:
+        - open
+        - accepted
+        - rejected
+
+    Language:
+      description: |
+        ISO 639-1 Language code. Currently supported codes are de, fr, en and it.
+      externalDocs:
+        url: https://en.wikipedia.org/wiki/ISO_639-1
+      type: string
+      enum:
+        - de
+        - fr
+        - en
+        - it
+
+    ResidencePermit:
+      type: string
+      description: Residence permit type which a foreign customer holds
+      externalDocs:
+        url: https://www.ch.ch/en/renewal-overview-swiss-residence-permit/
+      enum:
+        - B
+        - C
+        - Ci
+        - F
+        - G
+        - L
+        - N
+        - S
+
+    Gender:
+      description: The gender of the customer
+      type: string
+      enum:
+        - male
+        - female
+
+    InsuranceDeductible:
+      description: Deductible to select for the new insurance configuration
+      type: integer
+      enum:
+        - 0
+        - 100
+        - 200
+        - 300
+        - 400
+        - 500
+        - 600
+        - 1000
+        - 1500
+        - 2000
+        - 2500
+
+    # Registration types / wrappers:
+    Registration:
+      description: Registration / Application meta data.
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'c67e1cbb-a390-4346-aa7b-306c130983d4'
+        state:
+          $ref: '#/components/schemas/ProcessingState'
+        dateCreated:
+          type: string
+          format: date-time
+      required:
+        - id
+        - state
+        - dateCreated
+
+    RegistrationDetails:
+      description: |
+        The details of a family registration to an insurer.
+      properties:
+        id:
+          type: string
+          example: '83c11657-8ede-48e9-bfc9-b8dbfba65bcf'
+        state:
+          $ref: '#/components/schemas/ProcessingState'
+        dateCreated:
+          type: string
+          format: date-time
+        family:
+          $ref: '#/components/schemas/FamilyRegistration'
+      required:
+        - id
+        - state
+        - dateCreated
+        - family
+
+    # Cancellation types / wrappers:
+    Cancellation:
+      description: Cancellation meta data.
+      type: object
+      properties:
+        id:
+          type: string
+          example: '83c11657-8ede-48e9-bfc9-b8dbfba65bcf'
+        state:
+          $ref: '#/components/schemas/ProcessingState'
+        dateCreated:
+          type: string
+          format: date-time
+      required:
+        - id
+        - state
+        - dateCreated
+
+    CancellationDetails:
+      description: |
+        The cancellation detail domain object provides all information required to cancel basic insurance coverage.
+        Next to the customer identifying information, it contains information about the new insurer as well as references to documents belonging to that customer.
+      properties:
+        id:
+          type: string
+          example: 'a6809645-745f-4738-b18b-f7bf4bb794fd'
+        state:
+          $ref: '#/components/schemas/ProcessingState'
+        dateCreated:
+          type: string
+          format: date-time
+        partner:
+          $ref: '#/components/schemas/PartnerCancellation'
+        address:
+          $ref: '#/components/schemas/Address'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        newInsurer:
+          $ref: '#/components/schemas/Insurer'
+        contractEndDate:
+          description: The last day on which the contract is valid, e.g. `2022-12-31`.
+          type: string
+          format: date
+          example: '2022-12-31'
+      required:
+        - id
+        - state
+        - dateCreated
+        - partner
+        - address
+        - documents
+        - newInsurer
+        - contractEndDate
+
+# Paths / endpoints ----------------------------------------------------------------------------------------------
+
+paths:
+  # Authentication / Application endpoints
+  /auth:
+    summary: Login to Account
+    post:
+      tags:
+        - Authentication
+      description: |
+        This Endpoint allows the user to be authenticated. On Request a session token will be returned which will be used to authenticate the user in later requests.
+      parameters:
+        - name: username
+          in: query
+          description: Username of target user
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: Password of target user
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: |
+            User authentication was successful. Endpoint returns session-token cookie, which will be set via Set-Cookie header
+          headers:
+            koa.sess:
+              schema:
+                type: string
+              description: Session-token used for user authentication
+            koa.sess.sig:
+              schema:
+                type: string
+              description: Signature Key which is used to detect tampering of the session-token
+        '401':
+          description: |
+            User was not authenticated
+
+  /auth/:
+    summary: Check authentication
+    get:
+      tags:
+        - Authentication
+      description: |
+        This Endpoint checks the users authentication based on the session-token.
+      responses:
+        '200':
+          description: |
+            Returns if the user is authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isAuthenticated:
+                    type: boolean
+
+  /auth/logout:
+    summary: Logout user
+    get:
+      tags:
+        - Authentication
+      description: |
+        This endpoint invalidates the user-session in the backend.
+      responses:
+        '200':
+          description: |
+            User-session has been invalidated
+
+  # Registration / Application endpoints
+  /registrations:
+    summary: Get registration meta data.
+    get:
+      tags:
+        - Registration
+      description: |
+        Get registration meta data. This endpoints provides an array of Registrations which can subsequently be used
+        to receive registration details. It is the entry point for registration processing.
+      parameters:
+        - name: processingState
+          in: query
+          description: Allows to filter registration meta data for a specific ProcessingState (e.g. new)
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProcessingState'
+        - name: limit
+          in: query
+          description: Limit number of results
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: Skip the first n results
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: |
+            Registration meta data for all AXA customers registering with a specific basic insurance provider.
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Registration'
+                  totalResults:
+                    type: integer
+                    minimum: 0
+        '400':
+          description: |
+            The Processing state provided is not a valid processing state
+
+  /registrations/{id}:
+    summary: Get registration details by id and update the state of registrations.
+    get:
+      tags:
+        - Registration
+      description: Get the registration details for a family registering with an basic insurance provider.
+      parameters:
+        - name: id
+          in: path
+          description: The registration id identifying one specific registration.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            The details for the registration of a family with a basic insurance provider
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationDetails'
+        '404':
+          description: |
+            Registration was not found using the id provided
+          content: {}
+  /registrations/{id}/accept:
+    patch:
+      tags:
+        - Registration
+      description: |
+        Accept a registration.
+      parameters:
+        - name: id
+          in: path
+          description: The id identifying one specific registration.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptRegistrationRequest'
+        required: true
+      responses:
+        '204':
+          description: |
+            Update successful
+        '404':
+          description: |
+            The registration with the given id was not found
+        '400':
+          description: |
+            The registration could not be accepted. Maybe, it has been rejected earlier.
+  /registrations/{id}/reject:
+    patch:
+      tags:
+        - Registration
+      description: |
+        Reject a registration.
+      parameters:
+        - name: id
+          in: path
+          description: The id identifying one specific registration.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectRegistrationRequest'
+        required: true
+      responses:
+        '204':
+          description: |
+            Update successful
+        '404':
+          description: |
+            The registration with the given id was not found
+        '400':
+          description: |
+            The registration could not be rejected. Maybe, it has been accepted earlier.
+
+  # Cancellation endpoints
+  /cancellations:
+    summary: |
+      Get cancellation meta data.
+    get:
+      tags:
+        - Cancellation
+      description: Get cancellation meta data
+      parameters:
+        - name: processingState
+          in: query
+          description: Filter for registration meta data having the given processing state.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProcessingState'
+        - name: limit
+          in: query
+          description: Limit number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: offset
+          in: query
+          description: Skip the first n results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: |
+            This endpoint provides an array of Cancellations which can subsequently be used
+            to receive cancellation details. It is the entry point for cancellation processing.
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Cancellation'
+                  totalResults:
+                    type: integer
+                    minimum: 0
+        '400':
+          description: |
+            The Processing state provided is not a valid processing state
+
+  /cancellations/{id}:
+    summary: Get cancellation details by id and update the state of cancellations.
+    get:
+      tags:
+        - Cancellation
+      description: Get the cancellation details for one specific customers coverage cancellation
+      parameters:
+        - name: id
+          in: path
+          description: The cancellation id identifying one specific registration.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            The details for a single cancellation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationDetails'
+        '404':
+          description: |
+            Cancellation was not found
+          content: {}
+  /cancellations/{id}/accept:
+    patch:
+      tags:
+        - Cancellation
+      description: |
+        Accept a cancellation.
+      parameters:
+        - name: id
+          in: path
+          description: The id identifying one specific cancellation.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptCancellationRequest'
+        required: true
+      responses:
+        '204':
+          description: |
+            Update successful
+        '404':
+          description: |
+            The cancellation with the given id was not found
+        '400':
+          description: |
+            The cancellation could not be accepted. Maybe, it has been rejected earlier.
+  /cancellations/{id}/reject:
+    patch:
+      tags:
+        - Cancellation
+      description: |
+        Reject a cancellation.
+      parameters:
+        - name: id
+          in: path
+          description: The id identifying one specific cancellation.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectCancellationRequest'
+        required: true
+      responses:
+        '204':
+          description: |
+            Update successful
+        '404':
+          description: |
+            The cancellation with the given id was not found
+        '400':
+          description: |
+            The cancellation could not be rejected. Maybe, it has been accepted earlier.
+
+  /documents/{id}:
+    get:
+      tags:
+        - Documents
+      summary: Get a specific pdf document related to a customers registration or cancellation
+      parameters:
+        - name: id
+          in: path
+          description: The document's id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            The PDF document
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: base64
+        '404':
+          description: |
+            Requested document was not found
+          content: {}

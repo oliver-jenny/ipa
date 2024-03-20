@@ -1,0 +1,68 @@
+{
+  "auth": {
+    "authentication": "Authentifizierung",
+    "input": {
+      "username": "Benutzername",
+      "password": "Passwort",
+      "submit": "Anmelden"
+    },
+    "error": {
+      "username-missing": "Bitte geben Sie einen Benutzernamen an.",
+      "password-missing": "Bitte geben Sie ein Passwort an.",
+      "wrong-credentials": "Die eingegebenen Anmeldedaten sind ungültig. Bitte überprüfen Sie Ihren Benutzernamen und Ihr Passwort und versuchen Sie es erneut."
+    }
+  },
+  "main-page": {
+    "filter": {
+      "search": "Suchen",
+      "processing-state": "Verarbeitsungsstand",
+      "processing-states": {
+        "all": "Alle",
+        "open": "Zu bearbeiten",
+        "accepted": "Akzeptiert",
+        "rejected": "Zurückgewiesen"
+      }
+    },
+    "button": {
+      "cancel": "Abbrechen",
+      "confirm": "Bestätigen"
+    },
+    "reject": {
+      "reason": "Grund der Rückweisung",
+      "info-text": "Wollen Sie die Grundversicherungs-Anmeldung von {{focusedName}} wirklich zurückweisen?"
+    },
+    "accept": {
+      "info-text": "Wollen Sie die Grundversicherungs-Anmeldung von {{focusedName}} wirklich bestätigen?"
+    },
+    "table": {
+      "previous-insurer": "Letzter Versicherer",
+      "new-insurance": "Neue Versicherung",
+      "franchise": "Franchise",
+      "accident-coverage": "Unfallseinschluss",
+      "model": "Modell",
+      "doctor-zsr": "Hausarzt-ZSR"
+    },
+    "error": {
+      "reason-missing": "Um eine Anmeldung zurückzuweisen müssen Sie einen Grund für die Zurückweisung angeben.",
+      "action": "Beim Ausführen dieser Aktion trat ein Fehler auf. Bitte versuchen Sie es später erneut."
+    },
+    "yes": "Ja",
+    "no": "Nein",
+    "no-results": "Es wurden keine Anmeldungen für Sie gefunden. Falls dies ein Fehler sein sollte, melden Sie sich beim Support unter +41 xx xxx xx xx oder versuchen Sie Daten mithilfe des SUCHEN-Knopfs zu laden",
+    "language": {
+      "de": "Deutsch",
+      "en": "Englisch"
+    },
+    "gender": {
+      "m": "M",
+      "f": "W"
+    }
+  },
+  "header": {
+    "logout": "Ausloggen",
+    "languages": {
+      "en": "EN",
+      "de": "DE"
+    }
+  }
+}
