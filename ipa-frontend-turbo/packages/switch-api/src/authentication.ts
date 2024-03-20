@@ -1,6 +1,6 @@
 const AUTH_URL = 'http://localhost:9000/auth';
 
-const TIMEOUT = 200;
+const TIMEOUT = 10000; // Timeout after 10 seconds
 const CONTROLLER = new AbortController();
 const REASON = new DOMException('signal timed out', 'TimeoutError');
 
