@@ -32,7 +32,7 @@ export const logout = () => {
       credentials: 'include',
     });
   } catch (error) {
-    console.error('Error fetching data for login: ', error);
+    console.error('Error while logout: ', error);
   }
 };
 
